@@ -33,6 +33,15 @@ async function run() {
     const fooddb = client.db('fooddb');
     const foodCollection = fooddb.collection("foods");
 
+    app.post('/add-food', async(req, res) => {
+        console.log("Hittng the Users Post APi");
+        const newFood = req.body;
+        console.log("User Info", newFood);
+        const result = await foodCollectionCollection.insertOne(newFood);
+        res.send(result);
+
+    })
+
 
 
     await client.db("admin").command({ ping: 1 });

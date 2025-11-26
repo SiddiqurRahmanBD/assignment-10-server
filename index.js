@@ -1,14 +1,12 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-
 
 const uri =
   "mongodb+srv://food:68mPPW7TD0xfU5UZ@duasmasi.bhtinpf.mongodb.net/?appName=Duasmasi";
@@ -29,20 +27,57 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     //Database
+    const db = client.db("food-db");
+    const foodCollection = db.collection("foods");
 
-    const fooddb = client.db('fooddb');
-    const foodCollection = fooddb.collection("foods");
+    //To show Home Page
+    app.get("/foods-home", async (req, res) => {
+      const result = await foodCollection
+        .find({ food_status: "Available" })
+        .sort({ quantity: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
 
-    app.post('/add-food', async(req, res) => {
-        console.log("Hittng the Users Post APi");
-        const newFood = req.body;
-        console.log("User Info", newFood);
-        const result = await foodCollectionCollection.insertOne(newFood);
-        res.send(result);
+    // To Show Available Foods
+    app.get("/foods", async (req, res) => {
+      const result = await foodCollection
+        .find({ food_status: "Available" })
+        .toArray();
 
-    })
+      res.send(result);
+    });
+    // To Show Food Details
+    app.get("/food-details/:id", async (req, res) => {
+      const { id } = req.params;
+      const objectId = new ObjectId(id);
 
+      const result = await foodCollection.findOne({ _id: objectId });
 
+      res.send(result);
+    });
+
+    // To Show That types of foods What are managed by User
+
+    app.get("/manage-foods", async (req, res) => {
+      const email = req.query.email;
+      const result = await foodCollection
+        .find({
+          donatorEmail: email,
+        })
+        .toArray();
+      res.send(result);
+    });
+
+    // To Add food in server
+    app.post("/add-food", async (req, res) => {
+      console.log("Hittng the Users Post APi");
+      const newFood = req.body;
+      console.log("User Info", newFood);
+      const result = await foodCollection.insertOne(newFood);
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -54,7 +89,6 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
 
 app.get("/", (req, res) => {
   res.send("Server Working!");

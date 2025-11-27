@@ -75,6 +75,7 @@ async function run() {
       console.log("Hittng the Users Post APi");
       const newFood = req.body;
       console.log("User Info", newFood);
+      newFood.quantity = Number(newFood.quantity);
       const result = await foodCollection.insertOne(newFood);
       res.send(result);
     });
